@@ -415,6 +415,10 @@
     background-size: 200% 200%;
     animation: plate-drift 18s var(--ease-quart) infinite alternate;
   }
+  /* iOS Low Power Mode blocks autoplay and paints a ▶ over the poster — background video, never a control */
+  video::-webkit-media-controls,
+  video::-webkit-media-controls-start-playback-button,
+  video::-webkit-media-controls-overlay-play-button { display: none !important; -webkit-appearance: none; }
   .hero__video {
     position: absolute; inset: 0; width: 100%; height: 100%;
     object-fit: cover;
@@ -465,6 +469,14 @@
   .matrix[data-active="1"] { --cols: 1fr 6fr 1fr 1fr; }
   .matrix[data-active="2"] { --cols: 1fr 1fr 6fr 1fr; }
   .matrix[data-active="3"] { --cols: 1fr 1fr 1fr 6fr; }
+  .matrix { --share: calc(6 / 9); }
+  /* 3-tab matrix (Rehab · Red Light · Zumba) */
+  .matrix.matrix--three                    { --cols: 6fr 1fr 1fr; --share: calc(6 / 8); }
+  .matrix.matrix--three[data-active="1"]   { --cols: 1fr 6fr 1fr; }
+  .matrix.matrix--three[data-active="2"]   { --cols: 1fr 1fr 6fr; }
+  /* Single-tab matrix (Bungee): the open tab is the whole row */
+  .matrix.matrix--solo,
+  .matrix.matrix--solo[data-active]        { --cols: 1fr; --share: 1; --body-max: 1240px; }
 
   .panel {
     position: relative;
@@ -497,10 +509,12 @@
     white-space: nowrap;
   }
 
+  .panel__title--long { font-size: clamp(1.6rem, 2.6vw, 2.6rem); }   /* 16-char titles fit the rail height */
+
   .panel__body {
     flex: 0 0 auto;
     /* Fixed to the OPEN panel's width (6 of 9 fr, minus rail) → no reflow during column tween */
-    width: min(760px, calc((100vw - 2 * var(--gutter) - var(--margin-wide)) * 6 / 9 - 128px));   /* 128 = rail incl. booking link */
+    width: min(var(--body-max, 760px), calc((100vw - 2 * var(--gutter) - var(--margin-wide)) * var(--share) - 128px));   /* 128 = rail incl. booking link; --share = open tab's fraction of the row */
     display: grid;
     grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);   /* media-led: 6:9 frame gets the room */
     gap: 32px;
@@ -570,6 +584,16 @@
     box-shadow: 0 0 8px var(--pink-40);
   }
   .panel__sub .textlink { margin-top: 6px; font-size: 12px; letter-spacing: .04em; max-width: 100%; }   /* longer label: tighter set, wraps inside column if needed */
+  .panel__sub--call { padding-top: 14px; }
+  .panel__sub-list { display: grid; gap: 4px; }
+  .panel__sub-list li {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(.95rem, 1.25vw, 1.2rem);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+  }
   .panel__sub-text { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; justify-items: start; min-width: 0; }   /* track may shrink below content → lines wrap */
 
   /* Kid reel — 3:4 portrait window, crossfading slides, pink progress hairline */
@@ -658,8 +682,22 @@
     .matrix[data-active="1"]  { --cols: 1fr 7fr 1fr 1fr; }
     .matrix[data-active="2"]  { --cols: 1fr 1fr 7fr 1fr; }
     .matrix[data-active="3"]  { --cols: 1fr 1fr 1fr 7fr; }
+    .matrix { --share: calc(7 / 10); }
+    .matrix.matrix--three                  { --cols: 7fr 1fr 1fr; --share: calc(7 / 9); }
+    .matrix.matrix--three[data-active="1"] { --cols: 1fr 7fr 1fr; }
+    .matrix.matrix--three[data-active="2"] { --cols: 1fr 1fr 7fr; }
+    .matrix.matrix--solo,
+    .matrix.matrix--solo[data-active]      { --cols: 1fr; --share: 1; }
+    /* Bungee solo: copy + call-to-reserve in column 1, Kid Bungee in column 2 */
+    .matrix--solo .panel__text {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      column-gap: 32px; align-items: start; align-self: start;
+    }
+    .matrix--solo .panel__text > .panel__copy           { grid-column: 1; grid-row: 1; }
+    .matrix--solo .panel__text > .panel__sub--call      { grid-column: 1; grid-row: 2; }
+    .matrix--solo .panel__text > .panel__sub:not(.panel__sub--call) { grid-column: 2; grid-row: 1 / span 2; }
     .panel__body {
-      width: min(900px, calc((100vw - 2 * var(--gutter) - var(--margin-wide)) * 7 / 10 - 128px));
+      width: min(var(--body-max, 900px), calc((100vw - 2 * var(--gutter) - var(--margin-wide)) * var(--share) - 128px));
       grid-template-columns: auto minmax(0, 1fr);
     }
     .panel__body > .panel__media {
@@ -668,6 +706,10 @@
     }
   }
   .media--bungee   { overflow: hidden; }
+  .media--kids     { overflow: hidden; }
+  /* Placeholder plates until studio photos arrive — brand gradients, not empty boxes */
+  .media--private  { background-image: radial-gradient(55% 45% at 35% 30%, var(--pink-40), transparent 70%), radial-gradient(45% 40% at 70% 75%, var(--white-12), transparent 70%), linear-gradient(160deg, var(--charcoal), var(--obsidian)); }
+  .media--party    { background-image: radial-gradient(40% 35% at 25% 25%, var(--pink), transparent 70%), radial-gradient(35% 30% at 75% 40%, rgb(255 46 147 / .55), transparent 70%), radial-gradient(50% 40% at 50% 85%, var(--white-12), transparent 70%), linear-gradient(200deg, var(--charcoal), var(--obsidian)); }
   .media--rehab    { overflow: hidden; }
   .media__clip {
     position: absolute; inset: 0;
@@ -973,7 +1015,7 @@
     .panel:first-child { border-top: 0; }
     .panel.is-active { grid-template-rows: auto 1fr; }
     .panel__rail { flex-direction: row; align-items: baseline; gap: 20px; padding: 24px 0; justify-content: flex-start; }
-    .panel__title { writing-mode: horizontal-tb; transform: none; font-size: clamp(1.6rem, 8vw, 2.2rem); }
+    .panel__title { writing-mode: horizontal-tb; transform: none; font-size: clamp(1.6rem, 8vw, 2.2rem); white-space: normal; }
     .panel__rail-foot { flex: 1; flex-wrap: wrap; align-items: baseline; justify-content: space-between; column-gap: 16px; min-width: 0; }
     .panel__cta { flex: none; writing-mode: horizontal-tb; transform: none; max-width: none; max-height: 0; }   /* never squeezed: wraps under the title when the line is full */
     .panel.is-active .panel__cta { max-width: none; max-height: 2em; }

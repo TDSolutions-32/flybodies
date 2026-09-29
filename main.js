@@ -203,11 +203,10 @@
   requestAnimationFrame(frame);
 
   /* ------------------------------------------------------------------------
-     7 · TRINITY MATRIX — hover (desktop) / focus + tap (all) → data-active
+     7 · MATRICES — each [data-matrix]: hover (desktop) / focus + tap (all) → data-active
      Column tween handled in CSS (grid-template-columns, 900ms expo-out).
      ------------------------------------------------------------------------ */
-  const matrix = $('[data-matrix]');
-  if (matrix) {
+  $$('[data-matrix]').forEach((matrix) => {
     const panels = $$('[data-panel]', matrix);
     const activate = (idx) => {
       if (matrix.dataset.active === String(idx)) return;
@@ -228,7 +227,7 @@
       });
     });
     activate(0);
-  }
+  });
 
   /* ------------------------------------------------------------------------
      7b · SLIDESHOWS — [data-slideshow] > [data-slide][data-dur] (s)
@@ -333,7 +332,9 @@
      ------------------------------------------------------------------------ */
   const burger = $('.burger');
   const drawer = $('#drawer');
-  const setDrawer = (open) => {
+  // viaKeyboard: move focus into/out of the drawer only for keyboard users — on touch,
+  // programmatic focus paints the :focus-visible ring on MENU after every close.
+  const setDrawer = (open, viaKeyboard = false) => {
     burger.setAttribute('aria-expanded', open);
     burger.querySelector('.burger__label').textContent = open ? 'Close' : 'Menu';
     if (open) {
@@ -341,19 +342,21 @@
       drawer.hidden = false;
       requestAnimationFrame(() => requestAnimationFrame(() => drawer.classList.add('is-open')));
       lenis?.stop();
-      drawer.querySelector('a')?.focus({ preventScroll: true });
+      if (viaKeyboard) drawer.querySelector('a')?.focus({ preventScroll: true });
     } else {
       drawer.classList.remove('is-open');
       lenis?.start();
       const done = () => { if (!drawer.classList.contains('is-open')) drawer.hidden = true; };
       REDUCED ? done() : drawer.addEventListener('transitionend', done, { once: true });
-      burger.focus({ preventScroll: true });
+      if (viaKeyboard) burger.focus({ preventScroll: true });
+      else burger.blur();
     }
   };
-  burger.addEventListener('click', () => setDrawer(burger.getAttribute('aria-expanded') !== 'true'));
-  $$('[data-drawer-link]').forEach((a) => a.addEventListener('click', () => setDrawer(false)));
+  // e.detail === 0 → click synthesized from Enter/Space
+  burger.addEventListener('click', (e) => setDrawer(burger.getAttribute('aria-expanded') !== 'true', e.detail === 0));
+  $$('[data-drawer-link]').forEach((a) => a.addEventListener('click', (e) => setDrawer(false, e.detail === 0)));
   addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && burger.getAttribute('aria-expanded') === 'true') setDrawer(false);
+    if (e.key === 'Escape' && burger.getAttribute('aria-expanded') === 'true') setDrawer(false, true);
   });
 
   /* ------------------------------------------------------------------------
