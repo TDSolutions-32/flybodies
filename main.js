@@ -469,6 +469,12 @@
     vid.addEventListener('loadedmetadata', slow);
     slow();
     if (REDUCED) vid.pause();
+    else {
+      // iOS Low Power Mode refuses muted autoplay until the visitor interacts:
+      // start the hero on the first tap/click/key so the video still shows up.
+      const kick = () => { if (vid.isConnected && vid.paused) vid.play().then(slow).catch(() => {}); };
+      ['touchend', 'click', 'keydown'].forEach((ev) => addEventListener(ev, kick, { once: true, passive: true }));
+    }
   }
   vid?.addEventListener('error', () => vid.remove(), true);
   vid?.querySelectorAll('source').forEach((s, i, all) => s.addEventListener('error', () => {
