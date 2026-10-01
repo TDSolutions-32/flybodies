@@ -42,7 +42,12 @@
     const target = $(a.getAttribute('href'));
     if (!target) return;
     e.preventDefault();
-    lenis ? lenis.scrollTo(target, { duration: 1.4 }) : target.scrollIntoView();
+    if (lenis) {
+      // Menu links: the open drawer has Lenis stopped, and a stopped Lenis ignores
+      // scrollTo — restart it first (the drawer closes itself right after).
+      lenis.start();
+      lenis.scrollTo(target, { duration: 1.4, force: true });
+    } else target.scrollIntoView();
   }));
 
   /* ------------------------------------------------------------------------

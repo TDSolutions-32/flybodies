@@ -442,6 +442,8 @@
     color: var(--white-60);
   }
   .hero__meta--left  { right: calc(50% + var(--meta-gap)); text-align: right; text-wrap: balance; }
+  .hero__meta--right a { transition: color var(--dur-xs); }
+  .hero__meta--right a:hover, .hero__meta--right a:focus-visible { color: var(--pink); }   /* address → Google Maps */
   .hero__meta--right {
     left: calc(50% + var(--meta-gap)); text-align: left; text-wrap: balance;
     max-width: calc(50% - var(--meta-gap) - var(--gutter) - 92px);   /* stop short of the FAQ orb (64px + ring + gap) */
